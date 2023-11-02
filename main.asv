@@ -1,0 +1,4 @@
+%Read audio file
+
+audio = audioread('Secret-Message.mp3');
+audioplayer(audio,44100); 
