@@ -1,4 +1,24 @@
 %Read audio file
 
-audio = audioread('Secret-Message.mp3');
-audioplayer(audio,44100); 
+[audio, audioFs] = audioread('Secret-Message.mp3');
+% sound(audio,audioFs *1); 
+
+% Stores quantization step-size or bit-depth
+% n = input("Input bit-depth: ");
+n = 3; 
+
+yq = length(audio);
+
+
+function yq = midTreadQuintizer(n,audio)
+    xMin = min(audio);
+    xMax = max(audio); 
+
+    qStep = (xMax(1) - xMin(1)) / (2^n - 1);
+    yq = audio;
+
+    for i=1:length(audio)
+        if 
+    end
+end
+
