@@ -7,18 +7,29 @@
 % n = input("Input bit-depth: ");
 n = 3; 
 
-yq = length(audio);
+xq = midTreadQuintizer(n,audio);
+
+subplot(2,1,1)
+plot(audio);
+
+subplot(2,1,2)
+plot(xq);
+
+function xq = midTreadQuintizer(n,audio)
+    xMin = min(audio(:,1));
+    xMax = max(audio(:,1)); 
+    L = (2^n - 1);
+    xq = 0;
 
 
-function yq = midTreadQuintizer(n,audio)
-    xMin = min(audio);
-    xMax = max(audio); 
+    qStep = round((xMax - xMin) / L,4);  
+    audioLen = length(audio); 
+    
+    xq = zeros(audioLen,2);
 
-    qStep = (xMax(1) - xMin(1)) / (2^n - 1);
-    yq = audio;
-
-    for i=1:length(audio)
-        if 
+    for i=1:audioLen
+        xq(i,:) = round(audio(i,1) / qStep,2) * qStep; 
     end
+    
 end
 

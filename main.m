@@ -5,30 +5,31 @@
 
 % Stores quantization step-size or bit-depth
 % n = input("Input bit-depth: ");
-n = 3; 
+n = 5; 
 
-yq = length(audio);
+xq = midTreadQuintizer(n,audio);
+
+subplot(2,1,1)
+plot(audio);
+
+subplot(2,1,2)
+plot(xq);
+
+function xq = midTreadQuintizer(n,audio)
+    xMin = min(audio(:,1));
+    xMax = max(audio(:,1)); 
+    L = (2^n - 1);
+    xq = 0;
 
 
-function yq = midTreadQuintizer(n,audio)
-    xMin = min(audio);
-    xMax = max(audio); 
-
-    qStep = (xMax(1) - xMin(1)) / (2^n - 1);
+    qStep = round(xMax - xMin) /L;  
+    audioLen = length(audio); 
     
-    audioLen = length(audio);
-    yq = zeros(audioLen,2);
+    xq = zeros(audioLen,2);
 
     for i=1:audioLen
-        xq = audio(i); 
-        j = 0; 
-        while (j <= n)
-            % % upperThresold = j + ();  
-            % lowerThreshold
-            % if ( <= j )
-            % end
-            j = j + 1; 
-        end
+        xq(i,:) = round(audio(i,1) / qStep) * qStep; 
     end
+    
 end
 
