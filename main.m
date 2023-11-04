@@ -5,7 +5,7 @@
 
 % Stores quantization step-size or bit-depth
 % n = input("Input bit-depth: ");
-n = 3; 
+n = 5; 
 time =linspace(0,3,length(audio));
 
 % Part 1
@@ -136,6 +136,7 @@ end
 function muExpan = muExpander(quantizedAudio, inputAudio)
     xMax = max(inputAudio(:,1));
     mu = 255; 
+    
     audioLen = length(inputAudio);
     muExpan = zeros(audioLen,2);
 
@@ -148,7 +149,7 @@ function muExpan = muExpander(quantizedAudio, inputAudio)
             sign = -1;
         end
 
-        muExpan(i,:) = abs(xMax) * sign* ((1 + mu)^y - 1) / mu; 
+        muExpan(i,:) = abs(xMax) * sign * ((1+mu)^abs(y) - 1)/ mu; 
     end 
 end
 
