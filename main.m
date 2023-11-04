@@ -5,24 +5,31 @@
 
 % Stores quantization step-size or bit-depth
 % n = input("Input bit-depth: ");
-n = 5; 
+n = 16; 
 
 % Part 1
 xq = midTreadQuintizer(n,audio);
 e = quantizationError(xq,audio);
 
-% subplot(3,1,1)
-% plot(audio);
-% title('Input Audio');
-% 
-% subplot(3,1,2)
-% plot(xq);
-% title('Quantized Audio(Bit Depth = 5)');
-% 
-% subplot(3,1,3)
-% plot(e);
-% title('Quantization Error');
-SNR1 = signalToNoiseRatio_SNR(audio,n);
+
+time =linspace(0,3,length(audio));
+
+subplot(3,1,1)
+plot(time,audio);
+title('Input Audio');
+xlabel('Time in seconds')
+
+subplot(3,1,2)
+plot(time,xq);
+title('Quantized Audio(Bit Depth = 3)');
+xlabel('Time in seconds')
+
+subplot(3,1,3)
+plot(e);
+title('Quantization Error');
+xlabel('Time in seconds')
+
+SNR1 = signalToNoiseRatio_RMS(audio,n);
 SNR2 = signalToNoiseRatio(e,audio);
 
 
@@ -56,7 +63,7 @@ e = zeros(audioLen,2);
 
 end
 
-function SNR = signalToNoiseRatio_SNR(audio,n)
+function SNR = signalToNoiseRatio_RMS(audio,n)
 % SNR computation using rms value of signal, x
 audioLen = length(audio); 
 sum = 0;
@@ -66,16 +73,16 @@ xMax = max(audio(:,1));
 L = (2^n - 1);
 
 % Get quantization interval
-qStep = round(xMax - xMin,4) /L;
+qStep = round(xMax - xMin,4)/L;
 
 % Computing for RMS value
 for i=1:audioLen
-    sum = sum + audio(i,1)^2;
+    sum = sum + (audio(i,1) * audio(i,1));
 end
 
-rms = sqrt(1/audioLen * sum);
+rms = sqrt((1/audioLen)* sum);
+SNR = 10.79 + 20*log10(rms/qStep);
 
-SNR = 10.79 + 20*log(rms/qStep);
 end
 
 function SNR = signalToNoiseRatio(qError, input)
@@ -85,8 +92,8 @@ function SNR = signalToNoiseRatio(qError, input)
     audioLen = length(input);
     for i =1:audioLen
         numerator = numerator + input(i,1)^2;
-        denominator = denominator + qError(i,1)^2;
+        denominator = denominator + qError(i,1)*qError(i,1);
     end
 
-    SNR = numerator / denominator;
+    SNR = 10 * log10(numerator / denominator);
 end
