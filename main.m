@@ -162,3 +162,25 @@ function muExpan = muExpander(quantizedAudio, inputAudio)
     end 
 end
 
+
+% Part 5 a
+function encoded = myBinaryEncoder(sample)
+    sample = min(max(sample, -1), 1);
+    if sample >= 0
+        sign_bit = '1';
+    else
+        sign_bit = '0';
+        sample = -sample; 
+    end
+    mantissa = '';
+    for i = 1:11 
+        sample = sample * 2;
+        if sample >= 1
+            mantissa = strcat(mantissa, '1');
+            sample = sample - 1;
+        else
+            mantissa = strcat(mantissa, '0');
+        end
+    end
+        encoded = strcat(sign_bit, mantissa);
+end
