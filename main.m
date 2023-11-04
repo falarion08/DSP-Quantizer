@@ -11,7 +11,7 @@ time =linspace(0,3,length(audio));
 % Part 1
 % xq = midTreadQuintizer(n,audio);
 % e = quantizationError(xq,audio);
-
+% 
 % 
 % subplot(3,1,1)
 % plot(time,audio);
@@ -20,13 +20,13 @@ time =linspace(0,3,length(audio));
 % 
 % subplot(3,1,2)
 % plot(time,xq);
-% title('Quantized Audio(Bit Depth = 3)');
+% title('Quantized Audio(Bit Depth = 5)');
 % xlabel('Time in seconds')
 % 
 % subplot(3,1,3)
 % plot(time,e);
 % title('Quantization Error');
-% xlabel('Time in seconds')
+% xlabel('Time in seconds');
 % 
 % SNR1 = signalToNoiseRatio_RMS(audio,n);
 % SNR2 = signalToNoiseRatio(e,audio);
@@ -39,15 +39,25 @@ e = quantizationError(recovered, audio);
 
 subplot(4,1,1);
 plot(time,audio);
+title('Input Audio');
+xlabel('time in seconds');
 
 subplot(4,1,2)
 plot(time,xq);
+title('Quantized Audio (Bit-Depth = 5)');
+xlabel('time in seconds');
 
 subplot(4,1,3)
 plot(time,recovered);
+title('Recovered');
+xlabel('time in seconds');
 
 subplot(4,1,4)
 plot(time,e);
+title('Error');
+xlabel('time in seconds');
+
+SNR2 = signalToNoiseRatio(e,audio); 
 
 
 
@@ -55,7 +65,6 @@ function xq = midTreadQuintizer(n,audio)
     xMin = min(audio(:,1));
     xMax = max(audio(:,1)); 
     L = (2^n - 1);
-    xq = 0;
 
     % Get quantization interval
     qStep = round(xMax - xMin,4) /L;
