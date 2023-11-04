@@ -5,32 +5,50 @@
 
 % Stores quantization step-size or bit-depth
 % n = input("Input bit-depth: ");
-n = 16; 
-
-% Part 1
-xq = midTreadQuintizer(n,audio);
-e = quantizationError(xq,audio);
-
-
+n = 3; 
 time =linspace(0,3,length(audio));
 
-subplot(3,1,1)
+% Part 1
+% xq = midTreadQuintizer(n,audio);
+% e = quantizationError(xq,audio);
+
+% 
+% subplot(3,1,1)
+% plot(time,audio);
+% title('Input Audio');
+% xlabel('Time in seconds')
+% 
+% subplot(3,1,2)
+% plot(time,xq);
+% title('Quantized Audio(Bit Depth = 3)');
+% xlabel('Time in seconds')
+% 
+% subplot(3,1,3)
+% plot(time,e);
+% title('Quantization Error');
+% xlabel('Time in seconds')
+% 
+% SNR1 = signalToNoiseRatio_RMS(audio,n);
+% SNR2 = signalToNoiseRatio(e,audio);
+
+% Part 4 - mu Law Compander Implementation
+xCompressed = muCompressor(audio);
+xq = midTreadQuintizer(n,xCompressed);
+recovered = muExpander(xq,audio);
+e = quantizationError(recovered, audio);
+
+subplot(4,1,1);
 plot(time,audio);
-title('Input Audio');
-xlabel('Time in seconds')
 
-subplot(3,1,2)
+subplot(4,1,2)
 plot(time,xq);
-title('Quantized Audio(Bit Depth = 3)');
-xlabel('Time in seconds')
 
-subplot(3,1,3)
-plot(e);
-title('Quantization Error');
-xlabel('Time in seconds')
+subplot(4,1,3)
+plot(time,recovered);
 
-SNR1 = signalToNoiseRatio_RMS(audio,n);
-SNR2 = signalToNoiseRatio(e,audio);
+subplot(4,1,4)
+plot(time,e);
+
 
 
 function xq = midTreadQuintizer(n,audio)
@@ -97,3 +115,40 @@ function SNR = signalToNoiseRatio(qError, input)
 
     SNR = 10 * log10(numerator / denominator);
 end
+
+function muComp = muCompressor(audio)
+    xMax = max(audio(:,1)); 
+    audioLen = length(audio); 
+    muComp = zeros(audioLen,2); 
+    mu = 255; 
+
+    for i=1:audioLen
+        x = audio(i,1);
+        if(x >= 0)
+            sign = 1;
+        else 
+            sign = -1;
+        end
+        muComp(i,:) = sign * log(1 + mu*(abs(x)/abs(xMax))) / log(i + mu);
+    end
+end
+
+function muExpan = muExpander(quantizedAudio, inputAudio)
+    xMax = max(inputAudio(:,1));
+    mu = 255; 
+    audioLen = length(inputAudio);
+    muExpan = zeros(audioLen,2);
+
+    for i = 1:audioLen
+        y = quantizedAudio(i,1); 
+
+        if y>= 0
+            sign =1;
+        else
+            sign = -1;
+        end
+
+        muExpan(i,:) = abs(xMax) * sign* ((1 + mu)^y - 1) / mu; 
+    end 
+end
+
