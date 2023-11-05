@@ -247,3 +247,54 @@ end
 % compressed8bit = myMuCompressor('100000000101') output = 10000101
 % compressed8bit = myMuCompressor('000011101010') output = 01001101
 
+
+% part 5 c
+
+function expanded12bit = myMuExpander(linear8bit)
+    % condition for the input to be a 12-bit string
+    if ~ischar(linear8bit) || length(linear8bit) ~= 8
+        error('Input must be a 8-bit string.');
+    end
+    
+    linear12bit =['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0','0'];
+ 
+    
+    if linear8bit(2) == '0' && linear8bit(3) == '0' && linear8bit(4) == '0'
+        linear12bit =[linear8bit(1), '0', '0', '0', '0', '0', '0', '0', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8)];
+    end 
+    if linear8bit(2) == '0' && linear8bit(3) == '0' && linear8bit(4) == '1'
+        linear12bit =[linear8bit(1), '0', '0', '0', '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8)];
+    end 
+
+    if linear8bit(2) == '0' && linear8bit(3) == '1' && linear8bit(4) == '0'
+        linear12bit =[linear8bit(1), '0', '0', '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1'];
+    end 
+    if linear8bit(2) == '0' && linear8bit(3) == '1' && linear8bit(4) == '1'
+        linear12bit =[linear8bit(1), '0', '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0'];
+    end 
+
+    if linear8bit(2) == '1' && linear8bit(3) == '0' && linear8bit(4) == '0'
+        linear12bit =[linear8bit(1), '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0'];
+    end 
+    if linear8bit(2) == '1' && linear8bit(3) == '0' && linear8bit(4) == '1'
+        linear12bit =[linear8bit(1), '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0', '0'];
+    end 
+
+    if linear8bit(2) == '1' && linear8bit(3) == '1' && linear8bit(4) == '0'
+        linear12bit =[linear8bit(1) '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0', '0', '0'];
+    end 
+    if linear8bit(2) == '1' && linear8bit(3) == '1' && linear8bit(4) == '1'
+        linear12bit =[linear8bit(1), '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0', '0', '0', '0'];
+    end 
+
+    
+
+    % Combine all parts to get the final 12-bit mu-law expanded code
+    expanded12bit = [linear12bit];
+end
+
+%sample inputs 
+% expanded12bit = myMuExpander('10000101') output = 100000000101
+% expanded12bit = myMuExpander('01001101') output = 000011101100
+
+
