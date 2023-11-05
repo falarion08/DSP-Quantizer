@@ -184,3 +184,62 @@ function encoded = myBinaryEncoder(sample)
     end
         encoded = strcat(sign_bit, mantissa);
 end
+
+
+% part 5 b
+
+function compressed8bit = myMuCompressor(linear12bit)
+    % condition for the input to be a 12-bit string
+    if ~ischar(linear12bit) || length(linear12bit) ~= 12
+        error('Input must be a 12-bit string.');
+    end
+    
+    % Extract the sign bit
+    signBit = linear12bit(1);
+    segmentBits = ['0', '0', '0'];
+    remainingBits = ['0', '0', '0', '0'];
+    
+    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '0' && linear12bit(7) == '0' && linear12bit(8) == '0'
+        segmentBits = ['0', '0', '0'];
+        remainingBits = [linear12bit(9), linear12bit(10), linear12bit(11), linear12bit(12)];
+    end 
+
+    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '0' && linear12bit(7) == '0' && linear12bit(8) == '1'
+        segmentBits = ['0', '0', '1'];
+        remainingBits = [linear12bit(9), linear12bit(10), linear12bit(11), linear12bit(12)];
+    end 
+
+    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '0' && linear12bit(7) == '1'
+        segmentBits = ['0', '1', '0'];
+        remainingBits = [linear12bit(8), linear12bit(9), linear12bit(10), linear12bit(11)];
+    end 
+    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '1' 
+        segmentBits = ['0', '1', '1'];
+        remainingBits = [linear12bit(7), linear12bit(8), linear12bit(9), linear12bit(10)];
+    end 
+    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '1' 
+        segmentBits = ['1', '0', '0'];
+        remainingBits = [linear12bit(6), linear12bit(7), linear12bit(8), linear12bit(9)];
+    end 
+    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '1'
+        segmentBits = ['1', '0', '1'];
+        remainingBits = [linear12bit(5), linear12bit(6), linear12bit(7), linear12bit(8)];
+    end 
+    if linear12bit(2) == '0' && linear12bit(3) == '1' 
+        segmentBits = ['1', '1', '0'];
+        remainingBits = [linear12bit(4), linear12bit(5), linear12bit(6), linear12bit(7)];
+    end 
+    if linear12bit(2) == '1'
+        segmentBits = ['1', '1', '1'];
+        remainingBits = [linear12bit(3), linear12bit(4), linear12bit(5), linear12bit(6)];
+    end 
+
+
+    % Combine all parts to get the final 8-bit mu-law compressed code
+    compressed8bit = [signBit, segmentBits, remainingBits];
+end
+
+%sample inputs
+% compressed8bit = myMuCompressor('100000000101') output = 10000101
+% compressed8bit = myMuCompressor('000011101010') output = 01001101
+
