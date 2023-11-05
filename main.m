@@ -184,7 +184,11 @@ function encoded = myBinaryEncoder(sample)
     end
         encoded = strcat(sign_bit, mantissa);
 end
-
+%sample input
+% myBinaryEncoder(0.75) output = 111000000000
+% myBinaryEncoder(-0.75) output = 011000000000
+% myBinaryEncoder(-0.645) output = 010100101000
+% myBinaryEncoder(0.0125) output = 100000011001
 
 % part 5 b
 
