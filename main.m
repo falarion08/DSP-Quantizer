@@ -59,35 +59,26 @@ xlabel('time in seconds');
 
 SNR2 = signalToNoiseRatio(e,audio); 
 
-% Part 5 - Digital Implementation
-input_min = min(audio); % Update the input_min
-input_max = max(audio); % Update the input_max
-
-dEncoded = myBinaryEncoder(audio);
-dCompressed = dCompressor(dEncoded);
-dExpanded = dExpander(dCompressed);
+%Part 5
+mBE12bit = myBinaryEncoder(audio);
+dCompressed = dCompressor(mBE12bit);
+dExpanded = dExpander(dcompressed);
 dDecoded = myBinaryDecoder(dExpanded);
-derror = dDecoded - audio;
-
-% Calculate SNR using the provided functions
-dsnrdb1 = signalToNoiseRatio_RMS(audio, n); % RMS-based SNR
-dsnrdb2 = signalToNoiseRatio(derror, audio); % SNR using provided function
+audio=audio(:,1);
+dError = dDecoded-audio;
+dDelta = (input_max-input_min)/((2^n)-1);
+SNRB1 = 10.79+20*log10(rms(audio)/dDelta);
+SNRB2 = 10*log10(sum(dDecoded.^2)/sum(dError.^2));
 
 figure;
-subplot(3, 1, 1);
-plot(time, audio);
-title('Original');
-xlabel('Time in seconds');
+subplot(3,1,1)
+plot(x,y)
 
-subplot(3, 1, 2);
-plot(time, dDecoded);
-title('Recovered Signal');
-xlabel('Time in seconds');
+subplot(3,1,2)
+plot(x,ddecoded)
 
-subplot(3, 1, 3);
-plot(time, derror);
-title('Error');
-xlabel('Time in seconds');
+subplot(3,1,3)
+plot(x,derror)
 
 function xq = midTreadQuintizer(n,audio)
     xMin = min(audio(:,1));
