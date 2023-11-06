@@ -73,12 +73,18 @@ SNRB2 = 10*log10(sum(dDecoded.^2)/sum(dError.^2));
 figure;
 subplot(3,1,1)
 plot(x,y)
+title('Input Audio');
+xlabel('time in seconds');
 
 subplot(3,1,2)
-plot(x,ddecoded)
+plot(x,dDecoded)
+title('Recovered Signal');
+xlabel('time in seconds');
 
 subplot(3,1,3)
-plot(x,derror)
+plot(x,dError)
+title('Error');
+xlabel('time in seconds');
 
 function xq = midTreadQuintizer(n,audio)
     xMin = min(audio(:,1));
