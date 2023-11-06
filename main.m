@@ -67,9 +67,8 @@ dDecoded = myBinaryDecoder(dExpanded);
 audio=audio(:,1);
 dError = dDecoded-audio;
 dDelta = (input_max-input_min)/((2^n)-1);
-SNRB1 = 10.79+20*log10(rms(audio)/dDelta);
-SNRB2 = 10*log10(sum(dDecoded.^2)/sum(dError.^2));
-
+SNR_recovered = signalToNoiseRatio(dError, audio);
+    
 figure;
 subplot(3,1,1)
 plot(x,y)
