@@ -59,7 +59,35 @@ xlabel('time in seconds');
 
 SNR2 = signalToNoiseRatio(e,audio); 
 
+% Part 5 - Digital Implementation
+input_min = min(audio); % Update the input_min
+input_max = max(audio); % Update the input_max
 
+dEncoded = myBinaryEncoder(audio);
+dCompressed = dCompressor(dEncoded);
+dExpanded = dExpander(dCompressed);
+dDecoded = myBinaryDecoder(dExpanded);
+derror = dDecoded - audio;
+
+% Calculate SNR using the provided functions
+dsnrdb1 = signalToNoiseRatio_RMS(audio, n); % RMS-based SNR
+dsnrdb2 = signalToNoiseRatio(derror, audio); % SNR using provided function
+
+figure;
+subplot(3, 1, 1);
+plot(time, audio);
+title('Original');
+xlabel('Time in seconds');
+
+subplot(3, 1, 2);
+plot(time, dDecoded);
+title('Recovered Signal');
+xlabel('Time in seconds');
+
+subplot(3, 1, 3);
+plot(time, derror);
+title('Error');
+xlabel('Time in seconds');
 
 function xq = midTreadQuintizer(n,audio)
     xMin = min(audio(:,1));
@@ -162,139 +190,95 @@ function muExpan = muExpander(quantizedAudio, inputAudio)
     end 
 end
 
-
-% Part 5 a
-function encoded = myBinaryEncoder(sample)
-    sample = min(max(sample, -1), 1);
-    if sample >= 0
-        sign_bit = '1';
-    else
-        sign_bit = '0';
-        sample = -sample; 
-    end
-    mantissa = '';
-    for i = 1:11 
-        sample = sample * 2;
-        if sample >= 1
-            mantissa = strcat(mantissa, '1');
-            sample = sample - 1;
+function myBin = myBinaryEncoder(input)
+    myBin = zeros(size(input, 1), 12);
+    for i = 1:size(input, 1)
+        curr = input(i);
+        temp = zeros(1, 12);
+        if curr < 0
+            temp(1) = 0;
+            curr = -curr; % Make it positive for encoding
         else
-            mantissa = strcat(mantissa, '0');
+            temp(1) = 1;
         end
+
+        for pos = 2:12
+            curr = curr * 2;
+            temp(pos) = floor(curr);
+            curr = curr - temp(pos);
+        end
+
+        myBin(i, :) = temp;
     end
-        encoded = strcat(sign_bit, mantissa);
-end
-%sample input
-% myBinaryEncoder(0.75) output = 111000000000
-% myBinaryEncoder(-0.75) output = 011000000000
-% myBinaryEncoder(-0.645) output = 010100101000
-% myBinaryEncoder(0.0125) output = 100000011001
-
-% part 5 b
-
-function compressed8bit = myMuCompressor(linear12bit)
-    % condition for the input to be a 12-bit string
-    if ~ischar(linear12bit) || length(linear12bit) ~= 12
-        error('Input must be a 12-bit string.');
-    end
-    
-    % Extract the sign bit
-    signBit = linear12bit(1);
-    segmentBits = ['0', '0', '0'];
-    remainingBits = ['0', '0', '0', '0'];
-    
-    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '0' && linear12bit(7) == '0' && linear12bit(8) == '0'
-        segmentBits = ['0', '0', '0'];
-        remainingBits = [linear12bit(9), linear12bit(10), linear12bit(11), linear12bit(12)];
-    end 
-
-    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '0' && linear12bit(7) == '0' && linear12bit(8) == '1'
-        segmentBits = ['0', '0', '1'];
-        remainingBits = [linear12bit(9), linear12bit(10), linear12bit(11), linear12bit(12)];
-    end 
-
-    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '0' && linear12bit(7) == '1'
-        segmentBits = ['0', '1', '0'];
-        remainingBits = [linear12bit(8), linear12bit(9), linear12bit(10), linear12bit(11)];
-    end 
-    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '0' && linear12bit(6) == '1' 
-        segmentBits = ['0', '1', '1'];
-        remainingBits = [linear12bit(7), linear12bit(8), linear12bit(9), linear12bit(10)];
-    end 
-    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '0' && linear12bit(5) == '1' 
-        segmentBits = ['1', '0', '0'];
-        remainingBits = [linear12bit(6), linear12bit(7), linear12bit(8), linear12bit(9)];
-    end 
-    if linear12bit(2) == '0' && linear12bit(3) == '0' && linear12bit(4) == '1'
-        segmentBits = ['1', '0', '1'];
-        remainingBits = [linear12bit(5), linear12bit(6), linear12bit(7), linear12bit(8)];
-    end 
-    if linear12bit(2) == '0' && linear12bit(3) == '1' 
-        segmentBits = ['1', '1', '0'];
-        remainingBits = [linear12bit(4), linear12bit(5), linear12bit(6), linear12bit(7)];
-    end 
-    if linear12bit(2) == '1'
-        segmentBits = ['1', '1', '1'];
-        remainingBits = [linear12bit(3), linear12bit(4), linear12bit(5), linear12bit(6)];
-    end 
-
-
-    % Combine all parts to get the final 8-bit mu-law compressed code
-    compressed8bit = [signBit, segmentBits, remainingBits];
 end
 
-%sample inputs
-% compressed8bit = myMuCompressor('100000000101') output = 10000101
-% compressed8bit = myMuCompressor('000011101010') output = 01001101
+function deComp = dCompressor(input)
+    deComp = zeros(size(input, 1), 8);
+    for i = 1:size(input, 1)
+        temp = zeros(1, 8);
+        curr = input(i, :);
+        temp(1) = curr(1);
+        temp(2:8) = [0 0 0 curr(2:5)];
 
-
-% part 5 c
-
-function expanded12bit = myMuExpander(linear8bit)
-    % condition for the input to be a 12-bit string
-    if ~ischar(linear8bit) || length(linear8bit) ~= 8
-        error('Input must be a 8-bit string.');
+        for pos = 2:8
+            if curr(pos) == 1
+                offset = 9 - pos;
+                temp(5:8) = curr(pos + 1:pos + 4);
+                binaryStr = dec2bin(offset, 3);
+                for di = 1:3
+                    temp(1 + di) = str2double(binaryStr(di));
+                end
+                break
+            end
+        end
+        deComp(i, :) = temp;
     end
-    
-    linear12bit =['0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0','0'];
- 
-    
-    if linear8bit(2) == '0' && linear8bit(3) == '0' && linear8bit(4) == '0'
-        linear12bit =[linear8bit(1), '0', '0', '0', '0', '0', '0', '0', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8)];
-    end 
-    if linear8bit(2) == '0' && linear8bit(3) == '0' && linear8bit(4) == '1'
-        linear12bit =[linear8bit(1), '0', '0', '0', '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8)];
-    end 
-
-    if linear8bit(2) == '0' && linear8bit(3) == '1' && linear8bit(4) == '0'
-        linear12bit =[linear8bit(1), '0', '0', '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1'];
-    end 
-    if linear8bit(2) == '0' && linear8bit(3) == '1' && linear8bit(4) == '1'
-        linear12bit =[linear8bit(1), '0', '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0'];
-    end 
-
-    if linear8bit(2) == '1' && linear8bit(3) == '0' && linear8bit(4) == '0'
-        linear12bit =[linear8bit(1), '0', '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0'];
-    end 
-    if linear8bit(2) == '1' && linear8bit(3) == '0' && linear8bit(4) == '1'
-        linear12bit =[linear8bit(1), '0', '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0', '0'];
-    end 
-
-    if linear8bit(2) == '1' && linear8bit(3) == '1' && linear8bit(4) == '0'
-        linear12bit =[linear8bit(1) '0', '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0', '0', '0'];
-    end 
-    if linear8bit(2) == '1' && linear8bit(3) == '1' && linear8bit(4) == '1'
-        linear12bit =[linear8bit(1), '1', linear8bit(5), linear8bit(6), linear8bit(7),linear8bit(8),'1', '0', '0', '0', '0', '0'];
-    end 
-
-    
-
-    % Combine all parts to get the final 12-bit mu-law expanded code
-    expanded12bit = [linear12bit];
 end
 
-%sample inputs 
-% expanded12bit = myMuExpander('10000101') output = 100000000101
-% expanded12bit = myMuExpander('01001101') output = 000011101100
+function dExpander = dExpander(input)
+    dExpander = zeros(size(input, 1), 12);
+    for i = 1:size(input, 1)
+        temp = zeros(1, 12);
+        curr = input(i, :);
+        temp(1) = curr(1);
+        segment = 7 - bin2dec([num2str(curr(2)) num2str(curr(3)) num2str(curr(4))]);
+
+        if segment ~= 7
+            temp(segment + 2) = 1;
+            temp(segment + 3:segment + 6) = curr(5:8);
+
+            if segment == 5
+                temp(segment + 7) = 1;
+            elseif segment < 5
+                temp(segment + 7) = 1;
+                temp(segment + 8:12) = zeros(1, 12 - segment - 7);
+            end
+        else
+            temp(segment + 2:segment + 5) = curr(5:8);
+        end
+
+        dExpander(i, :) = temp;
+    end
+end
+
+function deBin = myBinaryDecoder(input)
+    deBin = zeros(size(input, 1), 1);
+    for i = 1:size(input, 1)
+        curr = input(i, :);
+        temp = 0;
+
+        for exp = 2:12
+            if curr(exp) == 1
+                temp = temp + 2^-(exp - 1);
+            end
+        end
+
+        if curr(1) == 0
+            temp = -temp;
+        end
+
+        deBin(i, 1) = temp;
+    end
+end
 
 
