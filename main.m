@@ -68,20 +68,20 @@ audio=audio(:,1);
 dError = dDecoded-audio;
 dDelta = (input_max-input_min)/((2^n)-1);
 SNR_recovered = signalToNoiseRatio(dError, audio);
-    
+
 figure;
 subplot(3,1,1)
-plot(x,y)
+plot(time,audio)
 title('Input Audio');
 xlabel('time in seconds');
 
 subplot(3,1,2)
-plot(x,dDecoded)
+plot(time,audio)
 title('Recovered Signal');
 xlabel('time in seconds');
 
 subplot(3,1,3)
-plot(x,dError)
+plot(time,dError)
 title('Error');
 xlabel('time in seconds');
 
@@ -276,5 +276,3 @@ function deBin = myBinaryDecoder(input)
         deBin(i, 1) = temp;
     end
 end
-
-
