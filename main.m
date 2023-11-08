@@ -1,3 +1,8 @@
+%Submitted by:
+%BARRION, RYAN ONIL
+%CO CHIONG, SEAN
+%KHO, JOHN ZECHARIAH 
+
 %Read audio file
 
 [audio, audioFs] = audioread('Secret-Message.mp3');
